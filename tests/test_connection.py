@@ -12,5 +12,6 @@ class TestConnection(unittest.TestCase):
             return 'foo'
 
         c.subscribe('hello', handler)
+        c.wait()
 
         self.assertTrue(False)

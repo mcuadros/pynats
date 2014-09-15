@@ -1,9 +1,17 @@
 import socket
 import json
 import urlparse
+import re
 from pynats.subscription import Subscription
 
 DEFAULT_URI = 'nats://localhost:4222'
+
+MSG = re.compile(r'^MSG\s+(?P<subject>[^\s\r\n]+)\s+(?P<sid>[^\s\r\n]+)\s+(?P<reply>([^\s\r\n]+)[^\S\r\n]+)?(?P<size>\d+)\r\n')
+OK = re.compile(r'^\+OK\s*\r\n')
+ERR = re.compile(r'^-ERR\s+(\'.+\')?\r\n')
+PING = re.compile(r'^PING\r\n')
+PONG = re.compile(r'^PONG\r\n')
+INFO = re.compile(r'^INFO\s+([^\r\n]+)\r\n')
 
 
 class Connection(object):
@@ -41,9 +49,8 @@ class Connection(object):
         ))
 
     def _send_connect_msg(self):
-        type, params = self._send('CONNECT %s' % self._build_connect_config())
-        if type != 'INFO':
-            raise UnexpectedResponse('%s %s' % (type, params))
+        self._send('CONNECT %s' % self._build_connect_config())
+        self._recv(INFO)
 
     def _build_connect_config(self):
         config = {
@@ -63,9 +70,8 @@ class Connection(object):
         self._socket_file = self._socket.makefile('rb')
 
     def ping(self):
-        type, params = self._send('PING')
-        if type != 'PONG':
-            raise UnexpectedResponse('%s %s' % (type, params))
+        self._send('PING')
+        self._recv(PONG)
 
     def subscribe(self, subject, callback):
         s = Subscription(
@@ -75,11 +81,19 @@ class Connection(object):
             callback=callback,
             connetion=self
         )
-        print s.subject
 
         self._subscriptions.append(s)
+        self._send('SUB %s %s %d' % (s.subject, s.queue, s.sid))
 
-        print self._send('SUB %s %s %d' % (s.subject, s.queue, s.sid))
+    def wait(self):
+        result = self._recv(MSG)
+
+        print 'subject: %s, sid: %s, reply: %s, size: %s' % (
+            result.group('subject'),
+            result.group('sid'),
+            result.group('reply'),
+            result.group('size')
+        )
 
     def reconnect(self):
         self.close()
@@ -88,14 +102,16 @@ class Connection(object):
     def _send(self, command):
         print 'Send: %s' % command
         SocketError.wrap(self._socket.sendall, command + '\r\n')
+
+    def _recv(self, regexp):
         line = SocketError.wrap(self._socket_file.readline)
         print 'Recv: %s' % line
 
-        r = line.strip().split(' ', 1)
-        if len(r) == 1:
-            return r[0], ''
+        result = regexp.match(line)
+        if result is None:
+            raise UnexpectedResponse(regexp.pattern, line)
 
-        return r
+        return result
 
 
 class UnexpectedResponse(Exception):
