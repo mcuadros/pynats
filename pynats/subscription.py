@@ -15,3 +15,6 @@ class Subscription(object):
         self.queue = queue
         self.connetion = connetion
         self.callback = callback
+
+    def handle_msg(self, msg):
+        self.callback(msg)

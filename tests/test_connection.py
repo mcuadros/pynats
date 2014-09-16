@@ -8,10 +8,18 @@ class TestConnection(unittest.TestCase):
         c.connect()
         c.ping()
 
-        def handler():
+        def handler(msg):
+            print 'foo', msg
             return 'foo'
 
         c.subscribe('hello', handler)
+
+        def handler(msg):
+            print 'bar', msg
+            return 'bar'
+
+        c.subscribe('bar', handler)
+
         c.wait()
 
         self.assertTrue(False)

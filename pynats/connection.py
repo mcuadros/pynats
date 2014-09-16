@@ -19,7 +19,8 @@ class Connection(object):
     _connect_timeout = None
     _socket = None
     _socket_file = None
-    _subscriptions = []
+    _subscriptions = {}
+    _next_sid = 0
 
     def __init__(
         self,
@@ -50,7 +51,7 @@ class Connection(object):
 
     def _send_connect_msg(self):
         self._send('CONNECT %s' % self._build_connect_config())
-        self._recv(INFO)
+        self._recv_match(INFO)
 
     def _build_connect_config(self):
         config = {
@@ -71,7 +72,7 @@ class Connection(object):
 
     def ping(self):
         self._send('PING')
-        self._recv(PONG)
+        self._recv_match(PONG)
 
     def subscribe(self, subject, callback):
         s = Subscription(
@@ -82,18 +83,17 @@ class Connection(object):
             connetion=self
         )
 
-        self._subscriptions.append(s)
+        self._next_sid += 1
+        self._subscriptions[self._next_sid] = s
         self._send('SUB %s %s %d' % (s.subject, s.queue, s.sid))
 
     def wait(self):
-        result = self._recv(MSG)
+        while True:
+            self._handle_msg(self._recv_msg())
 
-        print 'subject: %s, sid: %s, reply: %s, size: %s' % (
-            result.group('subject'),
-            result.group('sid'),
-            result.group('reply'),
-            result.group('size')
-        )
+    def _handle_msg(self, msg):
+        s = self._subscriptions.get(msg['sid'])
+        s.handle_msg(msg)
 
     def reconnect(self):
         self.close()
@@ -103,7 +103,7 @@ class Connection(object):
         print 'Send: %s' % command
         SocketError.wrap(self._socket.sendall, command + '\r\n')
 
-    def _recv(self, regexp):
+    def _recv_match(self, regexp):
         line = SocketError.wrap(self._socket_file.readline)
         print 'Recv: %s' % line
 
@@ -112,6 +112,16 @@ class Connection(object):
             raise UnexpectedResponse(regexp.pattern, line)
 
         return result
+
+    def _recv_msg(self):
+        result = self._recv_match(MSG)
+
+        msg = dict(result.groupdict())
+        msg['sid'] = int(msg['sid'])
+        msg['size'] = int(msg['size'])
+        msg['data'] = SocketError.wrap(self._socket_file.readline)
+
+        return msg
 
 
 class UnexpectedResponse(Exception):
