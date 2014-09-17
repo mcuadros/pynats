@@ -13,7 +13,7 @@ class Connection(object):
     _socket = None
     _socket_file = None
     _subscriptions = {}
-    _next_sid = 0
+    _next_sid = 1
 
     def __init__(
         self,
@@ -69,16 +69,23 @@ class Connection(object):
 
     def subscribe(self, subject, callback):
         s = Subscription(
-            sid=len(self._subscriptions) + 1,
+            sid=self._next_sid,
             subject=subject,
             queue='',
             callback=callback,
             connetion=self
         )
 
-        self._next_sid += 1
-        self._subscriptions[self._next_sid] = s
+        self._subscriptions[s.sid] = s
         self._send('SUB %s %s %d' % (s.subject, s.queue, s.sid))
+        self._next_sid += 1
+
+        return s
+
+    def unsubscribe(self, subscription):
+        self._send('UNSUB %d' % subscription.sid)
+        self._subscriptions.pop(subscription.sid)
+        print self._subscriptions
 
     def wait(self):
         while True:
