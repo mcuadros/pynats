@@ -12,7 +12,7 @@ class TestConnection(unittest.TestCase):
             print 'foo', msg
             return 'foo'
 
-        c.subscribe('hello', handler)
+        c.subscribe('foo', handler)
 
         def handler(msg):
             print 'bar', msg

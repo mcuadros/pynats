@@ -1,17 +1,10 @@
 import socket
 import json
 import urlparse
-import re
+from commands import commands, MSG, INFO, PING, PONG
 from pynats.subscription import Subscription
 
 DEFAULT_URI = 'nats://localhost:4222'
-
-MSG = re.compile(r'^MSG\s+(?P<subject>[^\s\r\n]+)\s+(?P<sid>[^\s\r\n]+)\s+(?P<reply>([^\s\r\n]+)[^\S\r\n]+)?(?P<size>\d+)\r\n')
-OK = re.compile(r'^\+OK\s*\r\n')
-ERR = re.compile(r'^-ERR\s+(\'.+\')?\r\n')
-PING = re.compile(r'^PING\r\n')
-PONG = re.compile(r'^PONG\r\n')
-INFO = re.compile(r'^INFO\s+([^\r\n]+)\r\n')
 
 
 class Connection(object):
@@ -51,7 +44,7 @@ class Connection(object):
 
     def _send_connect_msg(self):
         self._send('CONNECT %s' % self._build_connect_config())
-        self._recv_match(INFO)
+        self._recv(INFO)
 
     def _build_connect_config(self):
         config = {
@@ -72,7 +65,7 @@ class Connection(object):
 
     def ping(self):
         self._send('PING')
-        self._recv_match(PONG)
+        self._recv(PONG)
 
     def subscribe(self, subject, callback):
         s = Subscription(
@@ -89,11 +82,23 @@ class Connection(object):
 
     def wait(self):
         while True:
-            self._handle_msg(self._recv_msg())
+            type, result = self._recv(MSG, PING)
+            if type is MSG:
+                self._handle_msg(result)
+            else:
+                self._handle_ping()
 
-    def _handle_msg(self, msg):
+    def _handle_msg(self, result):
+        msg = dict(result.groupdict())
+        msg['sid'] = int(msg['sid'])
+        msg['size'] = int(msg['size'])
+        msg['data'] = SocketError.wrap(self._socket_file.readline)
+
         s = self._subscriptions.get(msg['sid'])
         s.handle_msg(msg)
+
+    def _handle_ping(self):
+        self._send('PONG')
 
     def reconnect(self):
         self.close()
@@ -103,25 +108,28 @@ class Connection(object):
         print 'Send: %s' % command
         SocketError.wrap(self._socket.sendall, command + '\r\n')
 
-    def _recv_match(self, regexp):
+    def _recv(self, *expected_commands):
         line = SocketError.wrap(self._socket_file.readline)
         print 'Recv: %s' % line
 
-        result = regexp.match(line)
+        command = self._get_command(line)
+        if command not in expected_commands:
+            raise UnexpectedResponse(line)
+
+        result = command.match(line)
         if result is None:
-            raise UnexpectedResponse(regexp.pattern, line)
+            raise UnknownResponse(command.pattern, line)
 
-        return result
+        return command, result
 
-    def _recv_msg(self):
-        result = self._recv_match(MSG)
+    def _get_command(self, line):
+        values = line.strip().split(' ', 1)
 
-        msg = dict(result.groupdict())
-        msg['sid'] = int(msg['sid'])
-        msg['size'] = int(msg['size'])
-        msg['data'] = SocketError.wrap(self._socket_file.readline)
+        return commands.get(values[0])
 
-        return msg
+
+class UnknownResponse(Exception):
+    pass
 
 
 class UnexpectedResponse(Exception):
