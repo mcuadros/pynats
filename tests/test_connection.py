@@ -9,15 +9,11 @@ class TestConnection(unittest.TestCase):
         c.ping()
 
         def handler(msg):
-            print 'foo', msg
+            print 'sid %d, reply "%s", data "%s"' % (msg.sid, msg.reply, msg.data)
+
             return 'foo'
 
         c.subscribe('foo', handler)
-
-        def handler(msg):
-            print 'bar', msg
-            return 'bar'
-
         c.subscribe('bar', handler)
 
         c.wait()

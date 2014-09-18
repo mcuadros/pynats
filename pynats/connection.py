@@ -3,6 +3,7 @@ import json
 import urlparse
 from commands import commands, MSG, INFO, PING, PONG
 from pynats.subscription import Subscription
+from pynats.message import Message
 
 DEFAULT_URI = 'nats://localhost:4222'
 
@@ -27,7 +28,6 @@ class Connection(object):
             'ssl_required': ssl_required,
             'verbose': verbose,
             'pedantic': pedantic
-
         }
 
     def connect(self):
@@ -91,9 +91,17 @@ class Connection(object):
         self._subscriptions.pop(subscription.sid)
         print self._subscriptions
 
+    def publish(self, subject, msg, reply=None):
+        if reply is None:
+            command = 'PUB %s %d' % (subject, len(msg))
+        else:
+            command = 'PUB %s %s %d' % (subject, reply, len(msg))
+
+        self._send(command)
+        self._send(msg)
+
     def wait(self):
         while True:
-            print 'foo'
             type, result = self._recv(MSG, PING)
             if type is MSG:
                 self._handle_msg(result)
@@ -101,12 +109,17 @@ class Connection(object):
                 self._handle_ping()
 
     def _handle_msg(self, result):
-        msg = dict(result.groupdict())
-        msg['sid'] = int(msg['sid'])
-        msg['size'] = int(msg['size'])
-        msg['data'] = SocketError.wrap(self._socket_file.readline)
+        data = dict(result.groupdict())
+        sid = int(data['sid'])
 
-        s = self._subscriptions.get(msg['sid'])
+        msg = Message(
+            sid=sid,
+            size=int(data['size']),
+            data=SocketError.wrap(self._socket_file.readline).strip(),
+            reply=data['reply'].strip() if data['reply'] is not None else None
+        )
+
+        s = self._subscriptions.get(sid)
         s.handle_msg(msg)
 
     def _handle_ping(self):
