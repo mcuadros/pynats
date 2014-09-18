@@ -8,13 +8,6 @@ DEFAULT_URI = 'nats://localhost:4222'
 
 
 class Connection(object):
-    _options = {}
-    _connect_timeout = None
-    _socket = None
-    _socket_file = None
-    _subscriptions = {}
-    _next_sid = 1
-
     def __init__(
         self,
         url=DEFAULT_URI,
@@ -23,8 +16,19 @@ class Connection(object):
         verbose=False,
         pedantic=False
     ):
-        self._options = locals()
-        self._options['url'] = urlparse.urlsplit(self._options['url'])
+        self._connect_timeout = None
+        self._socket = None
+        self._socket_file = None
+        self._subscriptions = {}
+        self._next_sid = 1
+        self._options = {
+            'url': urlparse.urlsplit(url),
+            'name': name,
+            'ssl_required': ssl_required,
+            'verbose': verbose,
+            'pedantic': pedantic
+
+        }
 
     def connect(self):
         self._build_socket()
@@ -89,6 +93,7 @@ class Connection(object):
 
     def wait(self):
         while True:
+            print 'foo'
             type, result = self._recv(MSG, PING)
             if type is MSG:
                 self._handle_msg(result)
