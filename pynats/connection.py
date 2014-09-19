@@ -89,7 +89,6 @@ class Connection(object):
     def unsubscribe(self, subscription):
         self._send('UNSUB %d' % subscription.sid)
         self._subscriptions.pop(subscription.sid)
-        print self._subscriptions
 
     def publish(self, subject, msg, reply=None):
         if reply is None:

@@ -14,7 +14,7 @@ def get_version_from_init():
 
 
 setup(
-    name='persistence',
+    name='pynats',
     license='MIT',
     author='Maximo Cuadros',
     author_email='mcuadros@gmail.com',
@@ -22,5 +22,8 @@ setup(
     url='https://github.com/mcuadros/pynats',
     packages=[
         'pynats'
+    ],
+    install_requires=[
+        'mocket == 1.1.1'
     ]
 )
