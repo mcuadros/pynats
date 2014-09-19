@@ -140,12 +140,12 @@ class Connection(object):
         self.connect()
 
     def _send(self, command):
-        print 'Send: %s' % command
+        #print 'Send: %s' % command
         SocketError.wrap(self._socket.sendall, command + '\r\n')
 
     def _recv(self, *expected_commands):
         line = SocketError.wrap(self._socket_file.readline)
-        print 'Recv: %s' % line
+        #print 'Recv: %s' % line
 
         command = self._get_command(line)
         if command not in expected_commands:

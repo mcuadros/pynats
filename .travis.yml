@@ -1,0 +1,18 @@
+language: python
+
+python:
+  - 2.7
+  - 3.3
+  - 3.4
+
+before_script:
+  - gem -v
+  - ruby -v
+  - gem install nats --pre
+  - which nats-server
+  - nats-server -d
+
+install:
+  - pip install --upgrade .
+
+script: py.test
