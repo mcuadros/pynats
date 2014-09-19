@@ -42,6 +42,22 @@ class TestConnection(unittest.TestCase):
         c.unsubscribe(subscription)
         self.assertEquals(c._subscriptions, {})
 
+    def test_publish(self):
+        c = pynats.Connection('nats://localhost:4444', 'foo')
+        c.connect()
+
+        assertSocket(expected='PUB foo 3\r\n', response='')
+        assertSocket(expected='msg\r\n', response='')
+        c.publish('foo', 'msg')
+
+    def test_publish_with_reply(self):
+        c = pynats.Connection('nats://localhost:4444', 'foo')
+        c.connect()
+
+        assertSocket(expected='PUB foo reply 3\r\n', response='')
+        assertSocket(expected='msg\r\n', response='')
+        c.publish('foo', 'msg', 'reply')
+
 
 class assertSocket(object):
     def __init__(self, expected, response):
