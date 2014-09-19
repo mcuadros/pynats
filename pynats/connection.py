@@ -1,10 +1,13 @@
 import socket
 import json
-import urlparse
 import time
-from commands import commands, MSG, INFO, PING, PONG, OK
+from pynats.commands import commands, MSG, INFO, PING, PONG, OK
 from pynats.subscription import Subscription
 from pynats.message import Message
+try:
+    import urllib.parse as urlparse
+except:
+    import urlparse
 
 DEFAULT_URI = 'nats://localhost:4222'
 

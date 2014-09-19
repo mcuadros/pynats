@@ -56,3 +56,6 @@ class TestConnectionIntegration(unittest.TestCase):
         th = threading.Thread(target=callback)
         th.start()
         th.join()
+
+if __name__ == '__main__':
+    unittest.main()
