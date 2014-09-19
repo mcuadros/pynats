@@ -2,7 +2,7 @@ import socket
 import json
 import urlparse
 import time
-from commands import commands, MSG, INFO, PING, PONG
+from commands import commands, MSG, INFO, PING, PONG, OK
 from pynats.subscription import Subscription
 from pynats.message import Message
 
@@ -104,7 +104,7 @@ class Connection(object):
         start = time.time()
         count = 0
         while True:
-            type, result = self._recv(MSG, PING)
+            type, result = self._recv(MSG, PING, OK)
             if type is MSG:
                 count += 1
                 if self._handle_msg(result) is False:
@@ -112,7 +112,7 @@ class Connection(object):
 
                 if iterations and iterations >= count:
                     break
-            else:
+            elif type is PING:
                 self._handle_ping()
 
             if duration and time.time() - time.time() - start:

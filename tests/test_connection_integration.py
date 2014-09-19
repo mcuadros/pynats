@@ -10,7 +10,7 @@ class TestConnectionIntegration(unittest.TestCase):
         mocket.Mocket.disable()
 
     def test_wait_with_timeout(self):
-        c = pynats.Connection('nats://localhost:4222', 'foo')
+        c = pynats.Connection('nats://localhost:4222', verbose=True)
         c.connect()
 
         def callback(msg):
@@ -21,7 +21,7 @@ class TestConnectionIntegration(unittest.TestCase):
         c.wait(duration=0.1)
 
     def test_wait_with_limit(self):
-        c = pynats.Connection('nats://localhost:4222', 'foo')
+        c = pynats.Connection('nats://localhost:4222', verbose=True)
         c.connect()
 
         def callback(msg):
@@ -34,7 +34,7 @@ class TestConnectionIntegration(unittest.TestCase):
         c.wait(iterations=3)
 
     def test_wait_with_handler_return_false(self):
-        c = pynats.Connection('nats://localhost:4222', 'foo')
+        c = pynats.Connection('nats://localhost:4222', verbose=True)
         c.connect()
 
         def callback(msg):
@@ -46,7 +46,7 @@ class TestConnectionIntegration(unittest.TestCase):
 
     def _send_message(self, sleep=0):
         def send():
-            c = pynats.Connection('nats://localhost:4222', 'foo')
+            c = pynats.Connection('nats://localhost:4222', verbose=True)
             c.connect()
             c.publish('foo', 'test')
         self._create_thread(send, sleep)
