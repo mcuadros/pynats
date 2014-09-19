@@ -58,6 +58,11 @@ class TestConnection(unittest.TestCase):
         assertSocket(expected='msg\r\n', response='')
         c.publish('foo', 'msg', 'reply')
 
+    def test_wait(self):
+        c = pynats.Connection('nats://localhost:4444', 'foo')
+        c.connect()
+        c.wait()
+
 
 class assertSocket(object):
     def __init__(self, expected, response):

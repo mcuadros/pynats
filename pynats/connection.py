@@ -99,7 +99,7 @@ class Connection(object):
         self._send(command)
         self._send(msg)
 
-    def wait(self):
+    def wait(self, duration=None, iterations=0):
         while True:
             type, result = self._recv(MSG, PING)
             if type is MSG:
