@@ -176,5 +176,5 @@ class SocketError(Exception):
     def wrap(wrapped_function, *args, **kwargs):
         try:
             return wrapped_function(*args, **kwargs)
-        except socket.error, err:
+        except socket.error as err:
             raise SocketError(err)
