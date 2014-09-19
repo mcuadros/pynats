@@ -58,10 +58,34 @@ class TestConnection(unittest.TestCase):
         assertSocket(expected='msg\r\n', response='')
         c.publish('foo', 'msg', 'reply')
 
-    def test_wait(self):
+    def test_wait_receive_ping(self):
         c = pynats.Connection('nats://localhost:4444', 'foo')
         c.connect()
-        c.wait()
+
+        def monkey(self, *expected_commands):
+            return pynats.commands.PING, None
+
+        c._recv = monkey
+        assertSocket(expected='PONG\r\n', response='')
+        c.wait(duration=0.1)
+
+    def test_wait_receive_msg(self):
+        c = pynats.Connection('nats://localhost:4444', 'foo')
+        c.connect()
+
+        def handler(msg):
+            return False
+
+        assertSocket(expected='SUB foo  1\r\n', response='')
+        c.subscribe('foo', handler)
+
+        def monkey(self, *expected_commands):
+            line = 'MSG foo 1 reply 10\r\n'
+            return pynats.commands.MSG, pynats.commands.MSG.match(line)
+
+        c._recv = monkey
+        assertSocket(expected='PONG\r\n', response='')
+        c.wait(iterations=1)
 
 
 class assertSocket(object):

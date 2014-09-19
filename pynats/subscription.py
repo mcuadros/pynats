@@ -11,4 +11,4 @@ class Subscription(object):
         self.max = 0
 
     def handle_msg(self, msg):
-        self.callback(msg)
+        return self.callback(msg)

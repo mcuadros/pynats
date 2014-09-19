@@ -1,6 +1,7 @@
 import socket
 import json
 import urlparse
+import time
 from commands import commands, MSG, INFO, PING, PONG
 from pynats.subscription import Subscription
 from pynats.message import Message
@@ -100,12 +101,22 @@ class Connection(object):
         self._send(msg)
 
     def wait(self, duration=None, iterations=0):
+        start = time.time()
+        count = 0
         while True:
             type, result = self._recv(MSG, PING)
             if type is MSG:
-                self._handle_msg(result)
+                count += 1
+                if self._handle_msg(result) is False:
+                    break
+
+                if iterations and iterations >= count:
+                    break
             else:
                 self._handle_ping()
+
+            if duration and time.time() - time.time() - start:
+                break
 
     def _handle_msg(self, result):
         data = dict(result.groupdict())
@@ -119,7 +130,7 @@ class Connection(object):
         )
 
         s = self._subscriptions.get(sid)
-        s.handle_msg(msg)
+        return s.handle_msg(msg)
 
     def _handle_ping(self):
         self._send('PONG')
