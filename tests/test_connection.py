@@ -85,7 +85,7 @@ class TestConnection(unittest.TestCase):
 
         c._recv = monkey
         assertSocket(expected='PONG\r\n', response='')
-        c.wait(iterations=1)
+        c.wait(count=1)
 
 
 class assertSocket(object):
@@ -104,3 +104,6 @@ class assertSocket(object):
 
     def get_response(self):
         return self.response
+
+if __name__ == '__main__':
+    unittest.main()

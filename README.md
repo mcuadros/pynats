@@ -3,6 +3,8 @@ pynats [![Build Status](https://travis-ci.org/mcuadros/pynats.png?branch=master)
 
 A Python client for the [NATS messaging system](https://github.com/apcera/gnatsd).
 
+> Note: pynats is under heavy development
+
 Requirements
 ------------
 
@@ -12,7 +14,7 @@ Requirements
 
 Usage
 -----
-## Basic Usage
+### Basic Usage
 
 ```python
 c = pynats.Connection(verbose=True)

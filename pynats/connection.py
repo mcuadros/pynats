@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import socket
 import json
 import time
@@ -13,6 +14,9 @@ DEFAULT_URI = 'nats://localhost:4222'
 
 
 class Connection(object):
+    """
+    A Connection represents a bare connection to a nats-server.
+    """
     def __init__(
         self,
         url=DEFAULT_URI,
@@ -35,6 +39,10 @@ class Connection(object):
         }
 
     def connect(self):
+        """
+        Connect will attempt to connect to the NATS server. The url can
+        contain username/password semantics.
+        """
         self._build_socket()
         self._connect_socket()
         self._build_file_socket()
@@ -76,6 +84,15 @@ class Connection(object):
         self._recv(PONG)
 
     def subscribe(self, subject, callback):
+        """
+        Subscribe will express interest in the given subject. The subject can
+        have wildcards (partial:*, full:>). Messages will be delivered to the
+        associated callback.
+
+        Args:
+            subject (string): a string with the subject
+            callback (function): callback to be called
+        """
         s = Subscription(
             sid=self._next_sid,
             subject=subject,
@@ -91,10 +108,24 @@ class Connection(object):
         return s
 
     def unsubscribe(self, subscription):
+        """
+        Unsubscribe will remove interest in the given subject.
+
+        Args:
+            subscription (pynats.Subscription): a Subscription object
+        """
         self._send('UNSUB %d' % subscription.sid)
         self._subscriptions.pop(subscription.sid)
 
     def publish(self, subject, msg, reply=None):
+        """
+        Publish publishes the data argument to the given subject.
+
+        Args:
+            subject (string): a string with the subject
+            msg (string): payload string
+            reply (string): subject used in the reply
+        """
         if reply is None:
             command = 'PUB %s %d' % (subject, len(msg))
         else:
@@ -103,17 +134,24 @@ class Connection(object):
         self._send(command)
         self._send(msg)
 
-    def wait(self, duration=None, iterations=0):
+    def wait(self, duration=None, count=0):
+        """
+        Publish publishes the data argument to the given subject.
+
+        Args:
+            duration (float): will wait for the given number of seconds
+            count (count): stop of wait after n messages from any subject
+        """
         start = time.time()
-        count = 0
+        total = 0
         while True:
             type, result = self._recv(MSG, PING, OK)
             if type is MSG:
-                count += 1
+                total += 1
                 if self._handle_msg(result) is False:
                     break
 
-                if iterations and iterations >= count:
+                if count and count >= total:
                     break
             elif type is PING:
                 self._handle_ping()
@@ -139,8 +177,17 @@ class Connection(object):
         self._send('PONG')
 
     def reconnect(self):
+        """
+        Close the connection to the NATS server and open a new one
+        """
         self.close()
         self.connect()
+
+    def close(self):
+        """
+        Close will close the connection to the server.
+        """
+        pass
 
     def _send(self, command):
         #print 'Send: %s' % command

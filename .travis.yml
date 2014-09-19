@@ -16,3 +16,8 @@ install:
   - pip install --upgrade .
 
 script: py.test
+
+matrix:
+  allow_failures:
+    - python: 3.3
+    - python: 3.4
