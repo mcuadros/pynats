@@ -107,15 +107,22 @@ class Connection(object):
 
         return s
 
-    def unsubscribe(self, subscription):
+    def unsubscribe(self, subscription, max=None):
         """
-        Unsubscribe will remove interest in the given subject.
+        Unsubscribe will remove interest in the given subject. If max is
+        provided an automatic Unsubscribe that is processed by the server
+        when max messages have been received
 
         Args:
             subscription (pynats.Subscription): a Subscription object
+            max (int=None): number of messages
         """
-        self._send('UNSUB %d' % subscription.sid)
-        self._subscriptions.pop(subscription.sid)
+        if max is None:
+            self._send('UNSUB %d' % subscription.sid)
+            self._subscriptions.pop(subscription.sid)
+        else:
+            subscription.max = max
+            self._send('UNSUB %d %s' % (subscription.sid, max))
 
     def publish(self, subject, msg, reply=None):
         """
@@ -151,8 +158,9 @@ class Connection(object):
                 if self._handle_msg(result) is False:
                     break
 
-                if count and count >= total:
+                if count and total >= count:
                     break
+
             elif type is PING:
                 self._handle_ping()
 
@@ -171,6 +179,12 @@ class Connection(object):
         )
 
         s = self._subscriptions.get(sid)
+        s.received += 1
+
+        # Check for auto-unsubscribe
+        if s.max > 0 and s.received == s.max:
+            self._subscriptions.pop(s.sid)
+
         return s.handle_msg(msg)
 
     def _handle_ping(self):
@@ -190,12 +204,10 @@ class Connection(object):
         pass
 
     def _send(self, command):
-        #print 'Send: %s' % command
         SocketError.wrap(self._socket.sendall, command + '\r\n')
 
     def _recv(self, *expected_commands):
         line = SocketError.wrap(self._socket_file.readline)
-        #print 'Recv: %s' % line
 
         command = self._get_command(line)
         if command not in expected_commands:

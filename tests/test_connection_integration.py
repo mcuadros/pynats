@@ -33,6 +33,25 @@ class TestConnectionIntegration(unittest.TestCase):
         self._send_message(0.1)
         c.wait(count=3)
 
+    def test_wait_with_limit_foo(self):
+        c = pynats.Connection(verbose=True)
+        c.connect()
+
+        def callback(msg):
+            return True
+
+
+        s = c.subscribe('foo', callback)
+        c.unsubscribe(s, 3)
+        self.assertEquals(1, len(c._subscriptions))
+
+        self._send_message(0.1)
+        self._send_message(0.1)
+        self._send_message(0.1)
+        c.wait(count=3)
+
+        self.assertEquals(0, len(c._subscriptions))
+
     def test_wait_with_handler_return_false(self):
         c = pynats.Connection(verbose=True)
         c.connect()

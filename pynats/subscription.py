@@ -5,7 +5,7 @@ class Subscription(object):
         self.queue = queue
         self.connetion = connetion
         self.callback = callback
-        self.msgs = 0
+        self.received = 0
         self.delivered = 0
         self.bytes = 0
         self.max = 0
