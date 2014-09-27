@@ -32,6 +32,13 @@ c.subscribe('foo', callback)
 # Waiting for one msg
 c.wait(count=1)
 
+# Requests
+def request_callback(msg):
+    print 'Got a response for help: %s' & msg.data
+
+c.request('help', request_callback)
+c.wait(count=1)
+
 # Unsubscribing
 subscription = c.subscribe('foo', callback)
 c.unsubscribe(subscription)

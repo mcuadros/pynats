@@ -2,6 +2,8 @@
 import socket
 import json
 import time
+import random
+import string
 from pynats.commands import commands, MSG, INFO, PING, PONG, OK
 from pynats.subscription import Subscription
 from pynats.message import Message
@@ -141,6 +143,27 @@ class Connection(object):
         self._send(command)
         self._send(msg)
 
+    def request(self, subject, callback, msg=None):
+        """
+        ublish a message with an implicit inbox listener as the reply.
+        Message is optional.
+
+        Args:
+            subject (string): a string with the subject
+            callback (function): callback to be called
+            msg (string=None): payload string
+        """
+        inbox = self._build_inbox()
+        s = self.subscribe(inbox, callback)
+        self.unsubscribe(s, 1)
+        self.publish(subject, msg, inbox)
+
+        return s
+
+    def _build_inbox(self):
+        id = ''.join(random.choice(string.lowercase) for i in range(13))
+        return "_INBOX.%s" % id
+
     def wait(self, duration=None, count=0):
         """
         Publish publishes the data argument to the given subject.
@@ -204,6 +227,7 @@ class Connection(object):
         pass
 
     def _send(self, command):
+        print command
         SocketError.wrap(self._socket.sendall, command + '\r\n')
 
     def _recv(self, *expected_commands):
