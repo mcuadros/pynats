@@ -76,6 +76,25 @@ class TestConnection(unittest.TestCase):
         s = c.request('request', 'callback', 'msg')
         self.assertEquals(s.subject, inbox)
 
+    def test_request_without_msg(self):
+        c = pynats.Connection('nats://localhost:4444', 'foo')
+        c.connect()
+
+        inbox = '_INBOX.kykblzisxpeou'
+
+        def mocked_inbox():
+            return inbox
+
+        c._build_inbox = mocked_inbox
+
+        assertSocket(expected='SUB %s  1\r\n' % inbox, response='')
+        assertSocket(expected='UNSUB 1 1\r\n', response='')
+        assertSocket(expected='PUB request %s 0\r\n' % inbox, response='')
+        assertSocket(expected='\r\n', response='')
+
+        s = c.request('request', 'callback')
+        self.assertEquals(s.subject, inbox)
+
     def test_publish_with_reply(self):
         c = pynats.Connection('nats://localhost:4444', 'foo')
         c.connect()

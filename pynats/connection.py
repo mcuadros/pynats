@@ -135,6 +135,9 @@ class Connection(object):
             msg (string): payload string
             reply (string): subject used in the reply
         """
+        if msg is None:
+            msg = ''
+
         if reply is None:
             command = 'PUB %s %d' % (subject, len(msg))
         else:
