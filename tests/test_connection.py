@@ -119,6 +119,11 @@ class TestConnection(unittest.TestCase):
         c.connect()
 
         def handler(msg):
+            self.assertEquals(msg.sid, 1)
+            self.assertEquals(msg.subject, 'foo')
+            self.assertEquals(msg.size, 10)
+            self.assertEquals(msg.reply, 'reply')
+
             return False
 
         assertSocket(expected='SUB foo  1\r\n', response='')

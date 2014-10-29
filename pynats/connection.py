@@ -199,6 +199,7 @@ class Connection(object):
 
         msg = Message(
             sid=sid,
+            subject=data['subject'],
             size=int(data['size']),
             data=SocketError.wrap(self._socket_file.readline).strip(),
             reply=data['reply'].strip() if data['reply'] is not None else None
@@ -230,7 +231,6 @@ class Connection(object):
         pass
 
     def _send(self, command):
-        print command
         SocketError.wrap(self._socket.sendall, command + '\r\n')
 
     def _recv(self, *expected_commands):
