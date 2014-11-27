@@ -85,7 +85,7 @@ class Connection(object):
         self._send('PING')
         self._recv(PONG)
 
-    def subscribe(self, subject, callback):
+    def subscribe(self, subject, callback, queue=''):
         """
         Subscribe will express interest in the given subject. The subject can
         have wildcards (partial:*, full:>). Messages will be delivered to the
@@ -98,7 +98,7 @@ class Connection(object):
         s = Subscription(
             sid=self._next_sid,
             subject=subject,
-            queue='',
+            queue=queue,
             callback=callback,
             connetion=self
         )
