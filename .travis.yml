@@ -1,19 +1,20 @@
 language: python
-
+sudo: false
 python:
   - 2.7
   - 3.3
   - 3.4
+  - pypy
 
 before_script:
   - gem -v
   - ruby -v
-  - gem install nats --pre
+  - travis_retry gem install nats --pre
   - which nats-server
   - nats-server -d
 
 install:
-  - pip install --upgrade .
+  - travis_retry pip install --upgrade .
 
 script: py.test
 
@@ -21,3 +22,4 @@ matrix:
   allow_failures:
     - python: 3.3
     - python: 3.4
+    - python: pypy
