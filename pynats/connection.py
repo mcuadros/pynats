@@ -164,7 +164,7 @@ class Connection(object):
         return s
 
     def _build_inbox(self):
-        id = ''.join(random.choice(string.lowercase) for i in range(13))
+        id = ''.join(random.choice(string.ascii_lowercase) for i in range(13))
         return "_INBOX.%s" % id
 
     def wait(self, duration=None, count=0):
@@ -201,8 +201,8 @@ class Connection(object):
             sid=sid,
             subject=data['subject'],
             size=int(data['size']),
-            data=SocketError.wrap(self._socket_file.readline).strip(),
-            reply=data['reply'].strip() if data['reply'] is not None else None
+            data=SocketError.wrap(self._socket_file.readline).decode('utf-8').strip(),
+            reply=data['reply'].decode('utf-8').strip() if data['reply'] is not None else None
         )
 
         s = self._subscriptions.get(sid)
@@ -231,16 +231,17 @@ class Connection(object):
         pass
 
     def _send(self, command):
-        SocketError.wrap(self._socket.sendall, command + '\r\n')
+        SocketError.wrap(self._socket.sendall, (command + '\r\n').encode('utf-8'))
 
     def _recv(self, *expected_commands):
         line = SocketError.wrap(self._socket_file.readline)
+        line = line.decode('utf-8')
 
         command = self._get_command(line)
         if command not in expected_commands:
             raise UnexpectedResponse(line)
 
-        result = command.match(line)
+        result = command.match(line.encode('utf-8'))
         if result is None:
             raise UnknownResponse(command.pattern, line)
 
