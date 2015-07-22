@@ -15,6 +15,10 @@ class TestConnection(unittest.TestCase):
         c = pynats.Connection('nats://localhost:4444', 'foo')
         c.connect()
 
+    def test_socket_keepalive(self):
+        c = pynats.Connection('nats://localhost:4444', 'foo', socket_keepalive=True)
+        c.connect()
+
     def test_ping(self):
         c = pynats.Connection('nats://localhost:4444', 'foo')
         c.connect()

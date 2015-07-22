@@ -25,9 +25,11 @@ class Connection(object):
         name=None,
         ssl_required=False,
         verbose=False,
-        pedantic=False
+        pedantic=False,
+        socket_keepalive=False
     ):
         self._connect_timeout = None
+        self._socket_keepalive = socket_keepalive
         self._socket = None
         self._socket_file = None
         self._subscriptions = {}
@@ -52,6 +54,9 @@ class Connection(object):
 
     def _build_socket(self):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        if self._socket_keepalive:
+            self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self._socket.settimeout(self._connect_timeout)
 
     def _connect_socket(self):
