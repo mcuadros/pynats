@@ -206,7 +206,7 @@ class Connection(object):
             sid=sid,
             subject=data['subject'],
             size=int(data['size']),
-            data=SocketError.wrap(self._socket_file.readline).strip(),
+            data=SocketError.wrap(self._readline).strip(),
             reply=data['reply'].strip() if data['reply'] is not None else None
         )
 
@@ -238,8 +238,20 @@ class Connection(object):
     def _send(self, command):
         SocketError.wrap(self._socket.sendall, command + '\r\n')
 
+    def _readline(self):
+        lines = []
+
+        while True:
+            line = self._socket_file.readline()
+            lines.append(line)
+
+            if line.endswith("\r\n"):
+                break
+
+        return "".join(lines)
+
     def _recv(self, *expected_commands):
-        line = SocketError.wrap(self._socket_file.readline)
+        line = SocketError.wrap(self._readline)
 
         command = self._get_command(line)
         if command not in expected_commands:
