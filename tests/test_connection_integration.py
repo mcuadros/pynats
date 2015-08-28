@@ -63,11 +63,27 @@ class TestConnectionIntegration(unittest.TestCase):
         self._send_message(0.1)
         c.wait()
 
-    def _send_message(self, sleep=0):
+    def test_multiline_send(self):
+        c = pynats.Connection(verbose=True)
+        c.connect()
+
+        payload = "123\n456"
+
+        def callback(msg):
+            self.assertEquals(msg.data, payload)
+            return False
+
+        c.subscribe('foo', callback)
+
+        self._send_message(msg=payload)
+        c.wait()
+
+
+    def _send_message(self, sleep=0, msg="foo"):
         def send():
             c = pynats.Connection(verbose=True)
             c.connect()
-            c.publish('foo', 'test')
+            c.publish('foo', msg)
         self._create_thread(send, sleep)
 
     def _create_thread(self, callback, sleep=0):
