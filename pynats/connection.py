@@ -236,13 +236,13 @@ class Connection(object):
         pass
 
     def _send(self, command):
-        SocketError.wrap(self._socket.sendall, command + '\r\n')
+        SocketError.wrap(self._socket.sendall, (command + '\r\n').encode('utf-8'))
 
     def _readline(self):
         lines = []
 
         while True:
-            line = self._socket_file.readline()
+            line = self._socket_file.readline().decode('utf-8')
             lines.append(line)
 
             if line.endswith("\r\n"):
@@ -257,7 +257,7 @@ class Connection(object):
         if command not in expected_commands:
             raise UnexpectedResponse(line)
 
-        result = command.match(line)
+        result = command.match(line.encode('utf-8'))
         if result is None:
             raise UnknownResponse(command.pattern, line)
 
