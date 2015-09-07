@@ -169,7 +169,7 @@ class Connection(object):
         return s
 
     def _build_inbox(self):
-        id = ''.join(random.choice(string.lowercase) for i in range(13))
+        id = ''.join(random.choice(string.ascii_lowercase) for i in range(13))
         return "_INBOX.%s" % id
 
     def wait(self, duration=None, count=0):
