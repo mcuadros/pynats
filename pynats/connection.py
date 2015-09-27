@@ -195,7 +195,7 @@ class Connection(object):
             elif type is PING:
                 self._handle_ping()
 
-            if duration and time.time() - time.time() - start:
+            if duration and time.time() - start > duration:
                 break
 
     def _handle_msg(self, result):
