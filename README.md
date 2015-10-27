@@ -1,7 +1,7 @@
 pynats [![Build Status](https://travis-ci.org/mcuadros/pynats.png?branch=master)](https://travis-ci.org/mcuadros/pynats)
 ======
 
-A Python client for the [NATS messaging system](https://github.com/apcera/gnatsd).
+A Python client for the [NATS messaging system](https://nats.io).
 
 > Note: pynats is under heavy development
 
@@ -9,7 +9,7 @@ Requirements
 ------------
 
 * python ~2.7
-* [nats](https://github.com/derekcollison/nats) or [gnatsd](https://github.com/apcera/gnatsd)
+* [gnatsd server](https://github.com/nats-io/gnatsd)
 
 
 Usage
