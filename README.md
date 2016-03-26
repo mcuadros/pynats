@@ -34,7 +34,7 @@ c.wait(count=1)
 
 # Requests
 def request_callback(msg):
-    print 'Got a response for help: %s' & msg.data
+    print 'Got a response for help: %s' % msg.data
 
 c.request('help', request_callback)
 c.wait(count=1)
