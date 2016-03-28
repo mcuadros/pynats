@@ -7,11 +7,9 @@ python:
   - pypy
 
 before_script:
-  - gem -v
-  - ruby -v
-  - travis_retry gem install nats --pre
-  - which nats-server
-  - nats-server -d
+  - wget https://github.com/nats-io/gnatsd/releases/download/v0.7.2/gnatsd-v0.7.2-linux-amd64.tar.gz -O gnatsd.tar.gz
+  - tar -xvf gnatsd.tar.gz
+  - ./gnatsd &
 
 install:
   - travis_retry pip install --upgrade .
