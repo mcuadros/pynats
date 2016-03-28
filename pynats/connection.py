@@ -206,8 +206,8 @@ class Connection(object):
             sid=sid,
             subject=data['subject'],
             size=int(data['size']),
-            data=SocketError.wrap(self._readline).strip(),
-            reply=data['reply'].strip() if data['reply'] is not None else None
+            data=SocketError.wrap(self._readline).decode('utf-8').strip(),
+            reply=data['reply'].decode('utf-8').strip() if data['reply'] is not None else None
         )
 
         s = self._subscriptions.get(sid)
@@ -252,6 +252,7 @@ class Connection(object):
 
     def _recv(self, *expected_commands):
         line = SocketError.wrap(self._readline)
+        line = line.decode('utf-8')
 
         command = self._get_command(line)
         if command not in expected_commands:
